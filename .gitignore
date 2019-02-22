@@ -4,3 +4,4 @@ venv/
 
 # project settings
 .idea
+__*__
