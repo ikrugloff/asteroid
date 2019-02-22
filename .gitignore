@@ -1,2 +1,6 @@
-*venv
+# virtualenv
+.venv
+venv/
+
+# project settings
 .idea
