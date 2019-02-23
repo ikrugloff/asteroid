@@ -1,5 +1,5 @@
-# Прерванный полёт-05
-# Интенсивность стрельбы снижена
+# Прерванный полёт-06
+# Взаимодействаие между объектами
 
 import random
 import games
@@ -23,6 +23,8 @@ class Asteroid(games.Sprite):
               LARGE: games.load_image(os.path.join(STATIC, 'asteroid_big.bmp'))}
 
     SPEED = 2
+    # SPAWN - количество новых астеройдов, но которое распадается один взорванный
+    SPAWN = 2
 
     def __init__(self, x, y, size):
         """ Инициализирует спрайт с изображением астеройда. """
@@ -47,6 +49,17 @@ class Asteroid(games.Sprite):
 
         if self.right < 0:
             self.left = games.screen.width
+
+    def die(self):
+        """ Разрушает астеройд. """
+        # если размеры астеройда крупные или средние, заменить его 2-мя более мелкими астеройдами
+        if self.size != Asteroid.SMALL:
+            for i in range(Asteroid.SPAWN):
+                new_asteroid = Asteroid(x=self.x,
+                                        y=self.y,
+                                        size=self.size - 1)
+                games.screen.add(new_asteroid)
+        self.destroy()
 
 
 class Ship(games.Sprite):
@@ -78,7 +91,6 @@ class Ship(games.Sprite):
         # корабль совершает рывок при нажатии стрелки вверх
         if games.keyboard.is_pressed(games.K_UP):
             Ship.sound.play()
-
             # изменение горизонтальной и вертикальной скорости корабля с учётом угла поворота
             angle = self.angle * math.pi / 180  # преобразование в радианы
             self.dx += Ship.VELOCITY_STEP * math.sin(angle)
@@ -106,6 +118,16 @@ class Ship(games.Sprite):
             new_missile = Missile(self.x, self.y, self.angle)
             games.screen.add(new_missile)
             self.missile_wait = Ship.MISSILE_DELAY
+
+        # проверка на перекрытие с другими объектами
+        if self.overlapping_sprites:
+            for sprite in self.overlapping_sprites:
+                sprite.die()
+            self.die()
+
+    def die(self):
+        """ Разрушает корабль. """
+        self.destroy()
 
 
 class Missile(games.Sprite):
@@ -159,6 +181,16 @@ class Missile(games.Sprite):
 
         if self.right < 0:
             self.left = games.screen.width
+
+        # проверка на перекрытие с другими объектами
+        if self.overlapping_sprites:
+            for sprite in self.overlapping_sprites:
+                sprite.die()
+            self.die()
+
+    def die(self):
+        """ Разрушает ракету. """
+        self.destroy()
 
 
 def main():
